@@ -1,6 +1,13 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System.Windows.Forms;
+using FarseerPhysics;
+using FarseerPhysics.DebugView;
+using FarseerPhysics.Dynamics;
+using FarseerPhysics.Factories;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using ButtonState = Microsoft.Xna.Framework.Input.ButtonState;
+using Keys = Microsoft.Xna.Framework.Input.Keys;
 
 namespace ggj2015
 {
@@ -9,14 +16,21 @@ namespace ggj2015
 	/// </summary>
 	public class Game1 : Game
 	{
-		GraphicsDeviceManager graphics;
-		SpriteBatch spriteBatch;
+		GraphicsDeviceManager _graphics;
+		SpriteBatch _spriteBatch;
+		private DebugViewXNA _debugView;
 
 		public Game1()
 			: base()
 		{
-			graphics = new GraphicsDeviceManager(this);
+			_graphics = new GraphicsDeviceManager(this);
 			Content.RootDirectory = "Content";
+
+			_graphics.PreferredBackBufferWidth = Globals.RenderWidth;
+			_graphics.PreferredBackBufferHeight = Globals.RenderHeight;
+			_graphics.IsFullScreen = true;
+
+			IsMouseVisible = true;
 		}
 
 		/// <summary>
@@ -27,9 +41,30 @@ namespace ggj2015
 		/// </summary>
 		protected override void Initialize()
 		{
+			base.Initialize();
+
+
+#if truet
+			var form = (Form)Control.FromHandle(Window.Handle);
+			form.FormBorderStyle = FormBorderStyle.None;
+			_graphics.PreferredBackBufferWidth = GraphicsDevice.DisplayMode.Width;
+			_graphics.PreferredBackBufferHeight = GraphicsDevice.DisplayMode.Height;
+			_graphics.ApplyChanges();
+
+			form.Left = 0;
+			form.Top = 0;
+			form.Focus();
+#endif
+
 			// TODO: Add your initialization logic here
 
-			base.Initialize();
+			Globals.World = new World(new Vector2(0, -9.8f));
+			_debugView = new DebugViewXNA(Globals.World);
+			_debugView.LoadContent(GraphicsDevice, Content);
+			_debugView.Flags = DebugViewFlags.Shape;//(DebugViewFlags)0xff;
+
+			BodyFactory.CreateCircle(Globals.World, 4, 1, new Vector2(0, 10), BodyType.Dynamic);
+			//BodyFactory.CreateCircle(Globals.World, 20, 1, new Vector2(10, 50), BodyType.Dynamic);
 		}
 
 		/// <summary>
@@ -39,18 +74,10 @@ namespace ggj2015
 		protected override void LoadContent()
 		{
 			// Create a new SpriteBatch, which can be used to draw textures.
-			spriteBatch = new SpriteBatch(GraphicsDevice);
+			_spriteBatch = new SpriteBatch(GraphicsDevice);
 
 			// TODO: use this.Content to load your game content here
-		}
-
-		/// <summary>
-		/// UnloadContent will be called once per game and is the place to unload
-		/// all content.
-		/// </summary>
-		protected override void UnloadContent()
-		{
-			// TODO: Unload any non ContentManager content here
+			Resources.Load(Content);
 		}
 
 		/// <summary>
@@ -64,6 +91,8 @@ namespace ggj2015
 				Exit();
 
 			// TODO: Add your update logic here
+			Globals.World.Step((float)gameTime.ElapsedGameTime.TotalSeconds);
+
 
 			base.Update(gameTime);
 		}
@@ -77,6 +106,17 @@ namespace ggj2015
 			GraphicsDevice.Clear(Color.CornflowerBlue);
 
 			// TODO: Add your drawing code here
+
+
+			//var projection = Matrix.CreateOrthographicOffCenter(0, ConvertUnits.ToSimUnits(GraphicsDevice.PresentationParameters.BackBufferWidth), 0, ConvertUnits.ToSimUnits(GraphicsDevice.PresentationParameters.BackBufferHeight), -1, 1);
+			var projection = Matrix.CreateOrthographicOffCenter(0, ConvertUnits.ToSimUnits(Globals.RenderWidth), 0, ConvertUnits.ToSimUnits(Globals.RenderHeight), -1, 1);
+			_debugView.RenderDebugData(projection, Matrix.Identity);
+
+			_spriteBatch.Begin(transformMatrix: Matrix.CreateScale((float)GraphicsDevice.PresentationParameters.BackBufferWidth / Globals.RenderWidth, (float)GraphicsDevice.PresentationParameters.BackBufferHeight / Globals.RenderHeight, 1));
+
+			_spriteBatch.Draw(Resources.Test, new Vector2(100, 100));
+
+			_spriteBatch.End();
 
 			base.Draw(gameTime);
 		}
