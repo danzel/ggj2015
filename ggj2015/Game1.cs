@@ -1,4 +1,5 @@
-﻿using System.Windows.Forms;
+﻿using System.Linq;
+using System.Windows.Forms;
 using FarseerPhysics;
 using FarseerPhysics.DebugView;
 using FarseerPhysics.Dynamics;
@@ -6,6 +7,7 @@ using FarseerPhysics.Factories;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Nuclex.Input;
 using ButtonState = Microsoft.Xna.Framework.Input.ButtonState;
 using Keys = Microsoft.Xna.Framework.Input.Keys;
 
@@ -24,6 +26,9 @@ namespace ggj2015
 			: base()
 		{
 			_graphics = new GraphicsDeviceManager(this);
+			Globals.Input = new InputManager(Services, Window.Handle);
+			Components.Add(Globals.Input);
+
 			Content.RootDirectory = "Content";
 
 			_graphics.PreferredBackBufferWidth = Globals.RenderWidth;
@@ -87,14 +92,16 @@ namespace ggj2015
 		/// <param name="gameTime">Provides a snapshot of timing values.</param>
 		protected override void Update(GameTime gameTime)
 		{
-			if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
+			base.Update(gameTime);
+			//Looks like keyboards[4] is the one (windowmessage keyboard)
+			var states = Globals.Input.Keyboards.Select(x => x.GetState()).ToArray();
+			if (Globals.Input.GamePads[0].GetState().Buttons.Back == ButtonState.Pressed || states.Any(s => s.IsKeyDown(Keys.Escape)))
 				Exit();
 
 			// TODO: Add your update logic here
 			Globals.World.Step((float)gameTime.ElapsedGameTime.TotalSeconds);
 
 
-			base.Update(gameTime);
 		}
 
 		/// <summary>
@@ -106,7 +113,6 @@ namespace ggj2015
 			GraphicsDevice.Clear(Color.CornflowerBlue);
 
 			// TODO: Add your drawing code here
-
 
 			//var projection = Matrix.CreateOrthographicOffCenter(0, ConvertUnits.ToSimUnits(GraphicsDevice.PresentationParameters.BackBufferWidth), 0, ConvertUnits.ToSimUnits(GraphicsDevice.PresentationParameters.BackBufferHeight), -1, 1);
 			var projection = Matrix.CreateOrthographicOffCenter(0, ConvertUnits.ToSimUnits(Globals.RenderWidth), 0, ConvertUnits.ToSimUnits(Globals.RenderHeight), -1, 1);
