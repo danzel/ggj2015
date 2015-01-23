@@ -33,7 +33,7 @@ namespace FarseerPhysics
 
         public static Vector2 ToDisplayUnits(Vector2 simUnits)
         {
-            return simUnits * _displayUnitsToSimUnitsRatio;
+			return new Vector2(0, 720) - (simUnits * _displayUnitsToSimUnitsRatio);
         }
 
         public static void ToDisplayUnits(ref Vector2 simUnits, out Vector2 displayUnits)

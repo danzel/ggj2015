@@ -21,6 +21,7 @@ namespace ggj2015
 		GraphicsDeviceManager _graphics;
 		SpriteBatch _spriteBatch;
 		private DebugViewXNA _debugView;
+		private Body _circle;
 
 		public Game1()
 			: base()
@@ -68,7 +69,7 @@ namespace ggj2015
 			_debugView.LoadContent(GraphicsDevice, Content);
 			_debugView.Flags = DebugViewFlags.Shape;//(DebugViewFlags)0xff;
 
-			BodyFactory.CreateCircle(Globals.World, 4, 1, new Vector2(0, 10), BodyType.Dynamic);
+			_circle = BodyFactory.CreateCircle(Globals.World, 4, 1, new Vector2(0, 10), BodyType.Dynamic);
 			//BodyFactory.CreateCircle(Globals.World, 20, 1, new Vector2(10, 50), BodyType.Dynamic);
 		}
 
@@ -121,6 +122,9 @@ namespace ggj2015
 			_spriteBatch.Begin(transformMatrix: Matrix.CreateScale((float)GraphicsDevice.PresentationParameters.BackBufferWidth / Globals.RenderWidth, (float)GraphicsDevice.PresentationParameters.BackBufferHeight / Globals.RenderHeight, 1));
 
 			_spriteBatch.Draw(Resources.Test, new Vector2(100, 100));
+			_spriteBatch.Draw(Resources.Test, new Vector2(200, 200));
+
+			_spriteBatch.Draw(Resources.Test, ConvertUnits.ToDisplayUnits(_circle.Position), origin: Resources.Test.CenteredOrigin());
 
 			_spriteBatch.End();
 
